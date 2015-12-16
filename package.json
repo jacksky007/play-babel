@@ -1,0 +1,14 @@
+{
+  "name": "play-babel",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "play": "babel examples/src/ -d examples/dist/ --plugins babel-ie-catch"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel-core": ""
+  }
+}
