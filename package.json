@@ -4,11 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "play": "babel examples/src/ -d examples/dist/ --plugins babel-ie-catch"
+    "examples": "babel examples/src/ -d examples/dist/ --plugins babel-ie-catch",
+    "browser-test": "babel browser-test/src/ -d browser-test/dist/ --plugins babel-ie-catch"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "babel-core": ""
+    "babel": "^6.3.26",
+    "babel-cli": "^6.4.5",
+    "babel-core": "^6.4.5",
+    "babel-template": "^6.3.13"
   }
 }

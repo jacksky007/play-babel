@@ -1,0 +1,10 @@
+<!doctype html>
+js error
+<script>
+window.onerror = function() {
+	alert([].join.call(arguments, '\n'))
+}
+</script>
+<script src="http://dist:8001/f.js"></script>
+<script src="http://dist:8001/g.js"></script>
+<script src="http://dist:8001/main.js"></script>

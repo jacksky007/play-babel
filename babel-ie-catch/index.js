@@ -1,60 +1,97 @@
 'use strict'
 
-module.exports = function(babel) {
-  var t = babel.types
-  var wrapInTryCatch = function(functionBody, printError) {
-    if (!functionBody.body.length) {
-      return functionBody
+const t = require('babel-types')
+const template = require('babel-template')
+
+const errorHasStack = '__error_has_stack__'
+const errorStackFilename = '__error_stack_filename__'
+
+/*
+stack format:
+${error.name}: ${error.message}
+  at ${functionName} (${fileNameOrUrl}:line:column)
+  at ${functionName} (${fileNameOrUrl}:line:column)
+  .
+  .
+  .
+*/
+
+const wrapProgram = template(`
+  (function() {
+    // Error in ie<10 has no stack
+    var ${errorHasStack}
+    try {
+      throw new Error
+    } catch(e) {
+      ${errorHasStack} = !!e.stack
     }
+    var ${errorStackFilename} = FILENAME
+    try {
+      BODY
+    } catch(e) {
+      // report the error
+      throw e
+    }
+  })()
+`)
 
-    var tryBlock = t.TryStatement(functionBody)
-    var catchBlock = t.CatchClause(t.Identifier('e'))
-    var loc = functionBody.body[0].loc
-    catchBlock.body = t.BlockStatement([
-      printError ?
-        t.CallExpression(t.Identifier('console.log'), [t.Identifier('e')]) :
-        t.ThrowStatement(t.Identifier('e.message ? [{location: "lines ' + loc.start.line + ' - ' + loc.end.line + '", message: e.message}] : e.concat({location: "lines ' + loc.start.line + ' - ' + loc.end.line + '"})'))
-    ])
-
-    tryBlock.handler = catchBlock
-
-    return t.BlockStatement([tryBlock])
+const wrapFunction = template(`{
+  try {
+    BODY
+  } catch(e) {
+    if (${errorHasStack}) {
+      throw e
+    }
+    var err = {}
+    if (!e.stack) {
+      e.stack = e.name + ': ' + e.message
+    }
+    e.stack = e.stack + '\\n\\tat ' + FUNCTION_NAME + ' (' + ${errorStackFilename} + ':' + LINE_START + '-' + LINE_END + ':0)'
+    throw e
   }
+}`)
 
-  return new babel.Transformer('ie-catch', {
-    Program: function(node, parent) {
-      if (!node.body.length) {
-        return
-      }
-      var program = t.Program()
-      program.body = wrapInTryCatch(t.BlockStatement(node.body), true).body
-      return program
+module.exports = {
+  visitor: {
+    Program: {
+      exit(path, state) {
+        if (state.end) {
+          return
+        }
+        state.end = true
 
-      var fe = t.FunctionExpression(
-        t.Identifier(''),
-        [],
-        t.BlockStatement(node.body)
-      )
-      var iife = t.CallExpression(fe, [])
-      node.body = [iife]
-      return node
-    },
-    /*BlockStatement: function(node) {
-      if (!/^Function/.test(this.parentPath.type)) {
-        return
+        const body = path.node.body
+        if (body.length === 0) {
+          return
+        }
+
+        const programBody = wrapProgram({
+          BODY: body,
+          FILENAME: t.StringLiteral(state.file.opts.filename),
+        })
+        path.replaceWith(t.Program([programBody]))
       }
-      if (!node.body.length) {
-        return
-      }
-      return wrapInTryCatch(node)
-    }*/
-    FunctionDeclaration: function(node) {
-      node.body = wrapInTryCatch(node.body)
-      return node
     },
-    FunctionExpression: function(node) {
-      node.body = wrapInTryCatch(node.body)
-      return node
+    Function:{
+      exit(path, state) {
+        if (state.end) {
+          return
+        }
+
+        const body = path.node.body.body
+        if (body.length === 0) {
+          return
+        }
+
+        path.get('body').replaceWith(wrapFunction({
+          BODY: body,
+          //FILENAME: t.StringLiteral(state.file.opts.filename),
+          FUNCTION_NAME: t.StringLiteral(path.node.id ? path.node.id.name : 'annoymous function'),
+          LINE_START: t.NumericLiteral(path.node.loc.start.line),
+          LINE_END: t.NumericLiteral(path.node.loc.end.line),
+        }))
+      }
     }
-  })
+  }
 }
+
