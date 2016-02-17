@@ -1,4 +1,4 @@
-window.g = function(a) {
-	console.log(a + b)
+function g(ga) {
+	console.log(ga + gb)
 }
-
+console.log('g', typeof g)

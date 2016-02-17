@@ -1,35 +1,16 @@
-(function () {
-	var __error_has_stack__;
-
-	try {
-		throw new Error();
-	} catch (e) {
-		__error_has_stack__ = !!e.stack;
+try {
+	function f() {
+		try {
+			var fa = 1,
+			    fb = 2;
+			g(fa);
+		} catch (e) {
+			e._t = e._t || new Date().getTime();
+			reportError(e, "browser-test/src/f.js", 2, 10, "f");
+			throw e;
+		}
 	}
-
-	var __error_stack_filename__ = "browser-test/src/f.js";
-
-	try {
-		window.f = function () {
-			try {
-				var a = 1;
-				window.g(a);
-			} catch (e) {
-				if (__error_has_stack__) {
-					throw e;
-				}
-
-				var err = {};
-
-				if (!e.stack) {
-					e.stack = e.name + ': ' + e.message;
-				}
-
-				e.stack = e.stack + '\n\tat ' + "annoymous function" + ' (' + __error_stack_filename__ + ':' + 1 + '-' + 4 + ':0)';
-				throw e;
-			}
-		};
-	} catch (e) {
-		throw e;
-	}
-})();
+} catch (e) {
+	e._t = e._t || new Date().getTime();
+	reportError(e, "browser-test/src/f.js", 0, 1, "top-level code");
+}

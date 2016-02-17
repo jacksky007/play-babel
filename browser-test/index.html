@@ -1,10 +1,10 @@
 <!doctype html>
 js error
-<script>
-window.onerror = function() {
-	alert([].join.call(arguments, '\n'))
-}
-</script>
-<script src="http://dist:8001/f.js"></script>
-<script src="http://dist:8001/g.js"></script>
-<script src="http://dist:8001/main.js"></script>
+<!--[if IE]>
+only IE can see this
+<![endif]-->
+
+<script src="http://dist:8080/report.js" crossorigin></script>
+<script src="http://dist:8080/dist/f.js" crossorigin></script>
+<script src="http://dist:8080/dist/g.js" crossorigin></script>
+<script src="http://dist:8080/dist/main.js" crossorigin></script>

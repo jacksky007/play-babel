@@ -1,23 +1,18 @@
-(function () {
-	var __error_has_stack__;
-
+try {
 	try {
-		throw new Error();
+		f();
 	} catch (e) {
-		__error_has_stack__ = !!e.stack;
-	}
+		document.body.innerHTML += '<pre>--------------------------</pre>';
+		document.body.innerHTML += '<pre>error from try catch</pre>';
+		var keys = ['message', 'line', 'column', 'stack', '_stack'];
 
-	var __error_stack_filename__ = 'browser-test/src/main.js';
-
-	try {
-		try {
-			f();
-		} catch (e) {
-			alert(e);
-			document.body.innerHTML += '<pre>' + e.stack + '</pre>';
-			throw e;
+		for (var i = 0; i < keys.length; i++) {
+			document.body.innerHTML += '<pre>' + keys[i] + ':\t' + e[keys[i]] + '</pre>';
 		}
-	} catch (e) {
-		throw e;
+
+		document.body.innerHTML += '<pre>--------------------------</pre>';
 	}
-})();
+} catch (e) {
+	e._t = e._t || new Date().getTime();
+	reportError(e, 'browser-test/src/main.js', 0, 1, 'top-level code');
+}

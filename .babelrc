@@ -1,0 +1,7 @@
+{
+  "plugins": [
+    ["babel-ie-catch", {
+      reportError: "reportError"
+    }]
+  ]
+}

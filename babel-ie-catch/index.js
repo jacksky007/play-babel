@@ -3,9 +3,6 @@
 const t = require('babel-types')
 const template = require('babel-template')
 
-const errorHasStack = '__error_has_stack__'
-const errorStackFilename = '__error_stack_filename__'
-
 /*
 stack format:
 ${error.name}: ${error.message}
@@ -17,41 +14,28 @@ ${error.name}: ${error.message}
 */
 
 const wrapProgram = template(`
-  (function() {
-    // Error in ie<10 has no stack
-    var ${errorHasStack}
-    try {
-      throw new Error
-    } catch(e) {
-      ${errorHasStack} = !!e.stack
-    }
-    var ${errorStackFilename} = FILENAME
-    try {
-      BODY
-    } catch(e) {
-      // report the error
-      throw e
-    }
-  })()
+  try {
+    BODY
+  } catch(e) {
+    REPORT_ERROR(e, FILENAME, LINE_START, LINE_END, FUNCTION_NAME)
+  }
 `)
 
 const wrapFunction = template(`{
   try {
     BODY
   } catch(e) {
-    if (${errorHasStack}) {
-      throw e
-    }
-    var err = {}
-    if (!e.stack) {
-      e.stack = e.name + ': ' + e.message
-    }
-    e.stack = e.stack + '\\n\\tat ' + FUNCTION_NAME + ' (' + ${errorStackFilename} + ':' + LINE_START + '-' + LINE_END + ':0)'
+    REPORT_ERROR(e, FILENAME, LINE_START, LINE_END, FUNCTION_NAME)
     throw e
   }
 }`)
 
 module.exports = {
+  pre() {
+    if (!this.opts.reportError) {
+      throw new Error('babel-ie-catch: You must pass in the function name reporting error')
+    }
+  },
   visitor: {
     Program: {
       exit(path, state) {
@@ -64,15 +48,19 @@ module.exports = {
         if (body.length === 0) {
           return
         }
-
+console.log(path.node)
         const programBody = wrapProgram({
           BODY: body,
           FILENAME: t.StringLiteral(state.file.opts.filename),
+          FUNCTION_NAME: t.StringLiteral('top-level code'),
+          LINE_START: t.NumericLiteral(0),
+          LINE_END: t.NumericLiteral(1),
+          REPORT_ERROR: t.identifier(state.opts.reportError),
         })
         path.replaceWith(t.Program([programBody]))
       }
     },
-    Function:{
+    Function: {
       exit(path, state) {
         if (state.end) {
           return
@@ -85,10 +73,11 @@ module.exports = {
 
         path.get('body').replaceWith(wrapFunction({
           BODY: body,
-          //FILENAME: t.StringLiteral(state.file.opts.filename),
+          FILENAME: t.StringLiteral(state.file.opts.filename),
           FUNCTION_NAME: t.StringLiteral(path.node.id ? path.node.id.name : 'annoymous function'),
           LINE_START: t.NumericLiteral(path.node.loc.start.line),
           LINE_END: t.NumericLiteral(path.node.loc.end.line),
+          REPORT_ERROR: t.identifier(state.opts.reportError),
         }))
       }
     }

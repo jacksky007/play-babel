@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "examples": "babel examples/src/ -d examples/dist/ --plugins babel-ie-catch",
-    "browser-test": "babel browser-test/src/ -d browser-test/dist/ --plugins babel-ie-catch"
+    "examples": "babel examples/src/ -d examples/dist/",
+    "browser-test": "babel browser-test/src/ -d browser-test/dist/"
   },
   "author": "",
   "license": "ISC",
