@@ -1,5 +1,6 @@
 'use strict'
 
+const namedFunction = require('babel-helper-function-name')
 const t = require('babel-types')
 const template = require('babel-template')
 
@@ -17,7 +18,7 @@ const wrapProgram = template(`
   try {
     BODY
   } catch(e) {
-    REPORT_ERROR(e, FILENAME, LINE_START, LINE_END, FUNCTION_NAME)
+    REPORT_ERROR(e, FILENAME, FUNCTION_NAME, LINE_START, LINE_END)
   }
 `)
 
@@ -25,10 +26,18 @@ const wrapFunction = template(`{
   try {
     BODY
   } catch(e) {
-    REPORT_ERROR(e, FILENAME, LINE_START, LINE_END, FUNCTION_NAME)
+    REPORT_ERROR(e, FILENAME, FUNCTION_NAME, LINE_START, LINE_END)
     throw e
   }
 }`)
+
+const markErrorResolved = template(`
+  ERROR._r = true
+`)
+
+const markErrorUnresolved = template(`
+  delete ERROR._r
+`)
 
 module.exports = {
   pre() {
@@ -48,13 +57,13 @@ module.exports = {
         if (body.length === 0) {
           return
         }
-console.log(path.node)
+
         const programBody = wrapProgram({
           BODY: body,
           FILENAME: t.StringLiteral(state.file.opts.filename),
           FUNCTION_NAME: t.StringLiteral('top-level code'),
-          LINE_START: t.NumericLiteral(0),
-          LINE_END: t.NumericLiteral(1),
+          LINE_START: t.NumericLiteral(path.node.loc.start.line),
+          LINE_END: t.NumericLiteral(path.node.loc.end.line),
           REPORT_ERROR: t.identifier(state.opts.reportError),
         })
         path.replaceWith(t.Program([programBody]))
@@ -71,16 +80,58 @@ console.log(path.node)
           return
         }
 
+        var functionName = 'anonymous function'
+        if (path.node.type === 'FunctionDeclaration') {
+          functionName = path.node.id.name
+        } else {
+          var newFunction = namedFunction(path)
+          if (newFunction) {
+            functionName = newFunction.id.name
+          }
+        }
+
         path.get('body').replaceWith(wrapFunction({
           BODY: body,
           FILENAME: t.StringLiteral(state.file.opts.filename),
-          FUNCTION_NAME: t.StringLiteral(path.node.id ? path.node.id.name : 'annoymous function'),
+          FUNCTION_NAME: t.StringLiteral(functionName),
           LINE_START: t.NumericLiteral(path.node.loc.start.line),
           LINE_END: t.NumericLiteral(path.node.loc.end.line),
           REPORT_ERROR: t.identifier(state.opts.reportError),
         }))
       }
-    }
+    },
+    CatchClause: {
+      enter(path, state) {
+        if (state.end) {
+          return
+        }
+
+        // variable name of error caught
+        var errorVariableName = path.node.param.name
+
+        path.node.body.body.unshift(
+          markErrorResolved({
+            ERROR: t.Identifier(errorVariableName)
+          })
+        )
+      }
+    },
+    ThrowStatement: {
+      enter(path, state) {
+        if (state.end) {
+          return
+        }
+
+        var error = path.node.argument
+        if (error.type === 'Identifier') {
+          path.insertBefore(
+            markErrorUnresolved({
+              ERROR: t.Identifier(error.name)
+            })
+          )
+        }
+      }
+    },
   }
 }
 

@@ -1,13 +1,18 @@
 window.reportError = (function() {
   var cache = {}
-  return function(e, filename, lineStart, lineEnd, functionName) {
+  return function(e, filename, functionName, lineStart, lineEnd) {
     if (!e._t) {
+      // add timestamp for identifing
       e._t = new Date().getTime()
       cache[e._t] = e
       e._stack = (e.name + ': ' + e.message)
 
       setTimeout(function() {
-        // report error
+        // ignore resolved error
+        if (e._r) {
+          return
+        }
+        // report unresolved error
         console.log(e._t, e._stack)
         delete cache[e._t]
       }, 10)
@@ -49,7 +54,7 @@ function b() {
 }
 try{
   a()
-  //setTimeout(a, 400)
+  //setTimeout(a, 4000)
 }catch(e){reportError(e)}
 function c() {
   try {
@@ -71,7 +76,7 @@ function d() {
   }
 }
 try{c()}catch(e){reportError(e)}
-window.onerror = function(message, url, line, column, error) {
+window.onerror = function(message, url, line, column, error) {return
 	document.body.innerHTML += '<pre>-----------------------</pre>'
 	document.body.innerHTML += '<pre>window.orror:</pre>'
 	document.body.innerHTML += '<pre>message: ' + message + '</pre>'
@@ -81,4 +86,4 @@ window.onerror = function(message, url, line, column, error) {
 	document.body.innerHTML += '<pre>error: ' + error + '</pre>'
 	document.body.innerHTML += '<pre>-----------------------</pre>'
 }
-
+console.log('log from report')

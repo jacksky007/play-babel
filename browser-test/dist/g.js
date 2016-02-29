@@ -1,14 +1,14 @@
 try {
-	function g(ga) {
+	var g = function g(ga) {
 		try {
 			console.log(ga + gb);
 		} catch (e) {
-			e._t = e._t || new Date().getTime();
-			reportError(e, "browser-test/src/g.js", 1, 3, "g");
+			reportError(e, 'browser-test/src/g.js', 'anonymous function', 1, 3);
 			throw e;
 		}
-	}
+	};
+
+	console.log('g', typeof g);
 } catch (e) {
-	e._t = e._t || new Date().getTime();
-	reportError(e, "browser-test/src/g.js", 0, 1, "top-level code");
+	reportError(e, 'browser-test/src/g.js', 'top-level code', 1, 5);
 }

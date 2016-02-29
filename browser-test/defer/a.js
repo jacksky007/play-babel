@@ -1,0 +1,1 @@
+logs.push('a.js')

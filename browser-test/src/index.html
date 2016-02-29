@@ -1,7 +1,20 @@
 <!doctype html>
+<body>
 js error
 
+
+<script defer>console.log('top inline script')</script>
 <script src="http://dist:8080/report.js" crossorigin></script>
-<script src="http://dist:8080/src/f.js" crossorigin></script>
-<script src="http://dist:8080/src/g.js" crossorigin></script>
+<p>report
+<script src="http://dist:8080/src/f.js" crossorigin defer></script>
+<p>f
+<script src="http://dist:8080/src/g.js" crossorigin defer></script>
+<p>g
 <script src="http://dist:8080/src/main.js" crossorigin></script>
+<p>main
+<script src="http://dist:8080/src/h.js" crossorigin></script>
+<p>h
+<script src="http://dist:8080/src/i.js" crossorigin defer></script>
+<script src="http://dist:8080/src/i.js" crossorigin defer></script>
+<script script>console.log('bottom inline script')</script>
+

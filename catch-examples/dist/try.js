@@ -1,0 +1,1 @@
+try{try{undefined();}catch(e){e._r=true;console.log(e);}}catch(e){reportError(e,"catch-examples/src/try.js","top-level code",1,6);}

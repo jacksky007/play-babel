@@ -1,0 +1,20 @@
+<body>
+<script>
+	var logs = []
+</script>
+<script src="a.js" defer></script>
+<script src="b.js"></script>
+<script src="innerHTML.js"></script>
+<script>
+	logs.push('inline script after innerHTML assignment')
+</script>
+<script src="c.js"></script>
+<script src="d.js"></script>
+<script src="e.js"></script>
+<script src="f.js" defer></script>
+<script>
+	console.log('before onload: ' + logs.join())
+	window.onload = function() {
+		console.log('window.onload: ' + logs.join())
+	}
+</script>

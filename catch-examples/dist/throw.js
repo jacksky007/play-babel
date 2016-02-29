@@ -1,0 +1,1 @@
+try{try{undefined();undefined();}catch(e){e._r=true;console.log(e);if(Math.random()<.5){delete e._r;throw e;}throw new Error('error has benn resolved and rethrown');}}catch(e){reportError(e,'catch-examples/src/throw.js','top-level code',1,11);}

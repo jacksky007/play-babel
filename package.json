@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "examples": "babel examples/src/ -d examples/dist/",
-    "browser-test": "babel browser-test/src/ -d browser-test/dist/"
+    "browser-test": "babel browser-test/src/ -d browser-test/dist/",
+    "catch-examples": "babel catch-examples/src/ -d catch-examples/dist/"
   },
   "author": "",
   "license": "ISC",
@@ -13,6 +14,7 @@
     "babel": "^6.3.26",
     "babel-cli": "^6.4.5",
     "babel-core": "^6.4.5",
+    "babel-helper-function-name": "^6.5.0",
     "babel-template": "^6.3.13"
   }
 }
